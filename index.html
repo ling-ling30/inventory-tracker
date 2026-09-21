@@ -1,0 +1,2532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory</title>
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --surface: #ffffff;
+      --surface-secondary: #fbfbfd;
+      --surface-tertiary: #f2f2f7;
+      --border: rgba(0, 0, 0, 0.08);
+      --border-strong: rgba(0, 0, 0, 0.14);
+      
+      --text-primary: #1d1d1f;
+      --text-secondary: #6e6e73;
+      --text-tertiary: #86868b;
+      
+      --apple-blue: #0071e3;
+      --apple-blue-hover: #0077ed;
+      --apple-blue-subtle: rgba(0, 113, 227, 0.08);
+      
+      --green: #34c759;
+      --green-subtle: rgba(52, 199, 89, 0.12);
+      
+      --orange: #ff9500;
+      --orange-subtle: rgba(255, 149, 0, 0.12);
+      
+      --red: #ff3b30;
+      --red-subtle: rgba(255, 59, 48, 0.1);
+
+      --font-system: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      --font-mono: "SF Mono", Menlo, Monaco, Consolas, monospace;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+      
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
+      --shadow-md: 0 4px 14px rgba(0,0,0,0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--font-system);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.47;
+      letter-spacing: -0.01em;
+    }
+
+    /* Top Navigation Bar */
+    header.nav-header {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .header-content {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .app-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+
+    .app-logo {
+      width: 30px;
+      height: 30px;
+      background: var(--text-primary);
+      color: #ffffff;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .app-title {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    /* Apple-Style Buttons */
+    .btn {
+      font-family: var(--font-system);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 14px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s cubic-bezier(0.25, 1, 0.5, 1);
+      border: 1px solid transparent;
+      outline: none;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: var(--apple-blue);
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background: var(--apple-blue-hover);
+    }
+
+    .btn-secondary {
+      background: var(--surface-tertiary);
+      color: var(--text-primary);
+      border-color: var(--border);
+    }
+    .btn-secondary:hover {
+      background: #e5e5ea;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+    }
+    .btn-ghost:hover {
+      background: var(--surface-tertiary);
+      color: var(--text-primary);
+    }
+
+    .btn-sm {
+      padding: 5px 11px;
+      font-size: 12px;
+    }
+
+    /* Back Link Button */
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--apple-blue);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      padding: 0;
+      user-select: none;
+      transition: opacity 0.15s;
+    }
+    .back-btn:hover {
+      opacity: 0.8;
+    }
+    .back-btn:active {
+      transform: scale(0.97);
+    }
+
+    /* Main Container */
+    main.main-content {
+      max-width: 1040px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Top Segmented Control (Main Tabs) */
+    .segmented-control {
+      background: rgba(0, 0, 0, 0.05);
+      padding: 3px;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      align-self: flex-start;
+    }
+
+    .segment-btn {
+      background: transparent;
+      border: none;
+      font-family: var(--font-system);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.18s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .segment-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .segment-btn.active {
+      background: var(--surface);
+      color: var(--text-primary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    .segment-count {
+      font-size: 11px;
+      padding: 1px 6px;
+      border-radius: var(--radius-full);
+      background: rgba(0, 0, 0, 0.06);
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .segment-btn.active .segment-count {
+      background: var(--apple-blue-subtle);
+      color: var(--apple-blue);
+    }
+
+    /* Page View Containers */
+    .page-view {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      animation: pageReveal 0.18s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .page-view.active {
+      display: flex;
+    }
+
+    @keyframes pageReveal {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Dedicated Page Navigation Header */
+    .page-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 4px;
+    }
+
+    .page-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    /* Full Page Form Card Container */
+    .form-container-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      max-width: 680px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .form-section {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .form-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-tertiary);
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+    }
+
+    /* Category Filter Pills */
+    .category-pills {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .cat-pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-full);
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .cat-pill:hover {
+      border-color: var(--border-strong);
+      color: var(--text-primary);
+    }
+
+    .cat-pill.active {
+      background: var(--text-primary);
+      color: #ffffff;
+      border-color: var(--text-primary);
+    }
+
+    .cat-pill.active .pill-number {
+      background: rgba(255, 255, 255, 0.25);
+      color: #ffffff;
+    }
+
+    .pill-number {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: var(--radius-full);
+      background: var(--surface-tertiary);
+      color: var(--text-secondary);
+    }
+
+    /* Action & Search Bar */
+    .action-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .search-input-wrapper {
+      position: relative;
+      flex: 1;
+      min-width: 240px;
+    }
+
+    .search-input-wrapper input {
+      width: 100%;
+      background: var(--surface-tertiary);
+      border: 1px solid transparent;
+      border-radius: var(--radius-full);
+      padding: 8px 14px 8px 34px;
+      font-size: 13px;
+      font-family: var(--font-system);
+      color: var(--text-primary);
+      outline: none;
+      transition: all 0.15s;
+    }
+
+    .search-input-wrapper input:focus {
+      background: #ffffff;
+      border-color: var(--apple-blue);
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-tertiary);
+      pointer-events: none;
+    }
+
+    .filter-select {
+      background: var(--surface-tertiary);
+      border: 1px solid transparent;
+      border-radius: var(--radius-full);
+      padding: 7px 12px;
+      font-size: 13px;
+      font-family: var(--font-system);
+      color: var(--text-primary);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .filter-select:focus {
+      background: #ffffff;
+      border-color: var(--apple-blue);
+    }
+
+    /* Table Component */
+    .content-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .table-container {
+      overflow-x: auto;
+      width: 100%;
+    }
+
+    table.apple-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    table.apple-table thead {
+      background: var(--surface-secondary);
+      border-bottom: 1px solid var(--border);
+    }
+
+    table.apple-table th {
+      padding: 12px 18px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    table.apple-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s ease;
+    }
+
+    table.apple-table tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    table.apple-table tbody tr:hover {
+      background: var(--surface-secondary);
+    }
+
+    table.apple-table td {
+      padding: 14px 18px;
+      vertical-align: middle;
+      color: var(--text-primary);
+    }
+
+    /* Tags & Badges */
+    .tag-code {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+      background: var(--surface-tertiary);
+      padding: 2px 7px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+    }
+
+    .status-assigned {
+      background: var(--apple-blue-subtle);
+      color: var(--apple-blue);
+    }
+
+    .status-available {
+      background: var(--green-subtle);
+      color: var(--green);
+    }
+
+    .status-storage {
+      background: var(--orange-subtle);
+      color: var(--orange);
+    }
+
+    .status-repair {
+      background: var(--red-subtle);
+      color: var(--red);
+    }
+
+    .user-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--text-primary);
+      transition: color 0.15s;
+    }
+
+    .user-pill:hover {
+      color: var(--apple-blue);
+    }
+
+    .user-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--surface-tertiary);
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* Cards Grid View */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .item-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .item-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .card-meta-list {
+      background: var(--surface-secondary);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .card-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .meta-label {
+      color: var(--text-secondary);
+    }
+
+    .meta-val {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    /* Form Inputs */
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-row label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      background: var(--surface-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px;
+      font-size: 13px;
+      font-family: var(--font-system);
+      color: var(--text-primary);
+      outline: none;
+      transition: all 0.15s;
+      width: 100%;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      background: #ffffff;
+      border-color: var(--apple-blue);
+      box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 72px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .form-category-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .form-cat-chip {
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--surface-tertiary);
+      border: 1px solid transparent;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.12s;
+    }
+
+    .form-cat-chip.active {
+      background: var(--apple-blue-subtle);
+      border-color: var(--apple-blue);
+      color: var(--apple-blue);
+      font-weight: 600;
+    }
+
+    .form-actions-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* Details Grid */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      background: var(--surface-secondary);
+      padding: 16px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+    }
+
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .detail-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .detail-value {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    /* Handover Timeline Log */
+    .handover-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .handover-log-card {
+      background: var(--surface-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 13px;
+    }
+
+    .handover-transfer-desc {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .handover-arrow {
+      color: var(--text-tertiary);
+      font-weight: 600;
+    }
+
+    .handover-date {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      pointer-events: none;
+    }
+
+    .toast-pill {
+      background: rgba(29, 29, 31, 0.94);
+      color: #ffffff;
+      padding: 8px 18px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      backdrop-filter: blur(10px);
+      animation: toastSlide 0.2s ease forwards;
+    }
+
+    @keyframes toastSlide {
+      from { transform: translateY(12px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Empty Box */
+    .empty-box {
+      padding: 48px 24px;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+
+    .empty-box h4 {
+      font-size: 16px;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .empty-box p {
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 680px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+      .action-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .search-input-wrapper {
+        width: 100%;
+      }
+      .form-container-card {
+        padding: 16px;
+      }
+      .handover-log-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="nav-header">
+    <div class="header-content">
+      <div class="app-title-group" onclick="showMainTab('items')">
+        <div class="app-logo">GA</div>
+        <h1 class="app-title">Inventory</h1>
+      </div>
+
+      <div class="header-controls">
+        <button class="btn btn-secondary btn-sm" id="export-excel-btn" title="Download Excel spreadsheet (CSV)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          Export Excel
+        </button>
+        <button class="btn btn-ghost btn-sm" id="export-json-btn">JSON</button>
+        <button class="btn btn-ghost btn-sm" id="reset-data-btn">Reset</button>
+        <button class="btn btn-primary" id="top-action-btn" onclick="openNewItemPage()">+ Add Item</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+
+    <!-- Top Segmented Tabs (Visible on list screens) -->
+    <div id="main-tabs-bar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <nav class="segmented-control">
+        <button class="segment-btn active" id="tab-items-btn" onclick="showMainTab('items')">
+          <span>Items</span>
+          <span class="segment-count" id="count-items-pill">0</span>
+        </button>
+        <button class="segment-btn" id="tab-people-btn" onclick="showMainTab('people')">
+          <span>People</span>
+          <span class="segment-count" id="count-people-pill">0</span>
+        </button>
+        <button class="segment-btn" id="tab-categories-btn" onclick="showMainTab('categories')">
+          <span>Categories</span>
+          <span class="segment-count" id="count-categories-pill">0</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- ==================== PAGE 1: ITEMS LIST ==================== -->
+    <section class="page-view active" id="view-items">
+      
+      <!-- Category Filter Pills -->
+      <div class="category-pills" id="category-pills-container"></div>
+
+      <!-- Action & Filter Bar -->
+      <div class="action-bar">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="items-search" placeholder="Search items, tags, or assignees...">
+        </div>
+
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <select class="filter-select" id="items-status-filter">
+            <option value="ALL">All Statuses</option>
+            <option value="In Use">In Use</option>
+            <option value="Available">Available</option>
+            <option value="In Storage">In Storage</option>
+            <option value="Repair">Needs Repair</option>
+          </select>
+
+          <select class="filter-select" id="items-people-filter">
+            <option value="ALL">All People</option>
+            <option value="ASSIGNED">Assigned Only</option>
+            <option value="UNASSIGNED">Unassigned Only</option>
+          </select>
+
+          <button class="btn btn-ghost btn-sm" id="toggle-view-btn" onclick="toggleItemsView()">
+            <span id="view-mode-label">Cards</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Table View -->
+      <div class="content-card" id="items-table-view">
+        <div class="table-container">
+          <table class="apple-table">
+            <thead>
+              <tr>
+                <th>Tag</th>
+                <th>Category</th>
+                <th>Details</th>
+                <th>Assigned To</th>
+                <th>Status</th>
+                <th>Location</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="items-table-body"></tbody>
+          </table>
+        </div>
+        <div id="items-empty-state" class="empty-box" style="display: none;">
+          <h4>No items found</h4>
+          <p>Try searching for something else or add a new item.</p>
+          <button class="btn btn-primary btn-sm" onclick="openNewItemPage()">+ Add Item</button>
+        </div>
+      </div>
+
+      <!-- Cards View -->
+      <div class="cards-grid" id="items-cards-view" style="display: none;"></div>
+    </section>
+
+    <!-- ==================== PAGE 2: NEW / EDIT ITEM (DEDICATED FULL PAGE) ==================== -->
+    <section class="page-view" id="view-item-form">
+      <div class="page-header-bar">
+        <button class="back-btn" onclick="showMainTab('items')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Items</span>
+        </button>
+        <h2 class="page-title" id="item-form-page-title" style="font-size: 18px;">New Item</h2>
+        <div style="width: 50px;"></div>
+      </div>
+
+      <div class="form-container-card">
+        <form id="page-item-form">
+          <input type="hidden" id="page-item-id">
+
+          <!-- Section 1: Category -->
+          <div class="form-section">
+            <div class="form-section-title">1. Category</div>
+            <div class="form-category-chips" id="form-category-chips"></div>
+          </div>
+
+          <!-- Section 2: Category Fields -->
+          <div class="form-section" style="margin-top: 10px;">
+            <div class="form-section-title" id="item-schema-section-title">2. Category Details</div>
+            <div id="item-dynamic-fields" style="display: flex; flex-direction: column; gap: 12px;"></div>
+          </div>
+
+          <!-- Section 3: Tag, Status & Assignment -->
+          <div class="form-section" style="margin-top: 10px;">
+            <div class="form-section-title">3. Tracking & Assignment</div>
+            
+            <div class="grid-2">
+              <div class="form-row">
+                <label for="item-tag">Item Tag</label>
+                <input type="text" id="item-tag" class="form-input" placeholder="e.g. LAP-001" required>
+              </div>
+              <div class="form-row">
+                <label for="item-status">Status</label>
+                <select id="item-status" class="form-select" required>
+                  <option value="Available">Available</option>
+                  <option value="In Use">In Use</option>
+                  <option value="In Storage">In Storage</option>
+                  <option value="Repair">Needs Repair</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label for="item-assigned-user">Assigned to</label>
+              <select id="item-assigned-user" class="form-select">
+                <option value="">— Unassigned (In Storage) —</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label for="item-location">Location</label>
+              <input type="text" id="item-location" class="form-input" placeholder="e.g. Room 402, Storage A">
+            </div>
+
+            <div class="form-row">
+              <label for="item-notes">Notes</label>
+              <textarea id="item-notes" class="form-textarea" placeholder="Serial number, warranty, condition notes..."></textarea>
+            </div>
+          </div>
+
+          <!-- Form Actions -->
+          <div class="form-actions-bar">
+            <button type="button" class="btn btn-ghost" onclick="showMainTab('items')">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="save-item-btn">Save Item</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ==================== PAGE 3: ITEM DETAIL VIEW (WITH HANDOVER HISTORY) ==================== -->
+    <section class="page-view" id="view-item-detail">
+      <div class="page-header-bar">
+        <button class="back-btn" onclick="showMainTab('items')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Items</span>
+        </button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-secondary btn-sm" id="handover-from-detail-btn">+ Handover Item</button>
+          <button class="btn btn-primary btn-sm" id="edit-from-detail-btn">Edit Item</button>
+        </div>
+      </div>
+
+      <div class="form-container-card" id="item-detail-content"></div>
+    </section>
+
+    <!-- ==================== PAGE 4: QUICK HANDOVER PAGE ==================== -->
+    <section class="page-view" id="view-item-handover">
+      <div class="page-header-bar">
+        <button class="back-btn" onclick="backToItemDetail()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Item</span>
+        </button>
+        <h2 class="page-title" style="font-size: 18px;">Handover Asset</h2>
+        <div style="width: 50px;"></div>
+      </div>
+
+      <div class="form-container-card" style="max-width: 520px;">
+        <form id="handover-form">
+          <input type="hidden" id="handover-item-id">
+
+          <div style="background: var(--surface-secondary); padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); margin-bottom: 6px;">
+            <div style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Item to Handover</div>
+            <div id="handover-item-summary" style="font-size: 15px; font-weight: 600; margin-top: 2px;"></div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-row">
+              <label for="handover-to-user">Handover to Person</label>
+              <select id="handover-to-user" class="form-select" required>
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label for="handover-notes">Handover Notes</label>
+              <textarea id="handover-notes" class="form-textarea" placeholder="e.g. Issued for Project Alpha, includes charger and laptop bag"></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions-bar">
+            <button type="button" class="btn btn-ghost" onclick="backToItemDetail()">Cancel</button>
+            <button type="submit" class="btn btn-primary">Complete Handover</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ==================== PAGE 5: PEOPLE LIST ==================== -->
+    <section class="page-view" id="view-people">
+      <div class="action-bar">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="people-search" placeholder="Search people, job titles, or departments...">
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="openNewPersonPage()">+ Add Person</button>
+      </div>
+
+      <div class="content-card">
+        <div class="table-container">
+          <table class="apple-table">
+            <thead>
+              <tr>
+                <th>Person</th>
+                <th>Job Title</th>
+                <th>Department</th>
+                <th>Assigned Items</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="people-table-body"></tbody>
+          </table>
+        </div>
+        <div id="people-empty-state" class="empty-box" style="display: none;">
+          <h4>No people registered</h4>
+          <p>Add staff members to start assigning items to them.</p>
+          <button class="btn btn-primary btn-sm" onclick="openNewPersonPage()">+ Add Person</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== PAGE 6: NEW / EDIT PERSON ==================== -->
+    <section class="page-view" id="view-person-form">
+      <div class="page-header-bar">
+        <button class="back-btn" onclick="showMainTab('people')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>People</span>
+        </button>
+        <h2 class="page-title" id="person-form-page-title" style="font-size: 18px;">New Person</h2>
+        <div style="width: 50px;"></div>
+      </div>
+
+      <div class="form-container-card" style="max-width: 520px;">
+        <form id="page-person-form">
+          <input type="hidden" id="page-person-id">
+
+          <div class="form-section">
+            <div class="form-row">
+              <label for="person-name">Full Name</label>
+              <input type="text" id="person-name" class="form-input" placeholder="e.g. Jane Doe" required>
+            </div>
+
+            <div class="form-row">
+              <label for="person-title">Job Title</label>
+              <input type="text" id="person-title" class="form-input" placeholder="e.g. Operations Lead" required>
+            </div>
+
+            <div class="form-row">
+              <label for="person-dept">Department</label>
+              <input type="text" id="person-dept" class="form-input" placeholder="e.g. General Affairs">
+            </div>
+          </div>
+
+          <div class="form-actions-bar">
+            <button type="button" class="btn btn-ghost" onclick="showMainTab('people')">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Person</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ==================== PAGE 7: PERSON PROFILE DETAIL ==================== -->
+    <section class="page-view" id="view-person-detail">
+      <div class="page-header-bar">
+        <button class="back-btn" onclick="showMainTab('people')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>People</span>
+        </button>
+        <button class="btn btn-secondary btn-sm" id="edit-from-person-detail-btn">Edit Person</button>
+      </div>
+
+      <div class="form-container-card" id="person-detail-content"></div>
+    </section>
+
+    <!-- ==================== PAGE 8: CATEGORIES LIST ==================== -->
+    <section class="page-view" id="view-categories">
+      <div class="action-bar">
+        <div>
+          <div style="font-size: 14px; font-weight: 600;">Category Schemas</div>
+          <div style="font-size: 12px; color: var(--text-secondary);">Set custom fields, input types, and required rules for each category.</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="openNewCategoryPage()">+ Add Category</button>
+      </div>
+
+      <div class="cards-grid" id="categories-grid"></div>
+    </section>
+
+    <!-- ==================== PAGE 9: NEW / EDIT CATEGORY ==================== -->
+    <section class="page-view" id="view-category-form">
+      <div class="page-header-bar">
+        <button class="back-btn" onclick="showMainTab('categories')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          <span>Categories</span>
+        </button>
+        <h2 class="page-title" id="category-form-page-title" style="font-size: 18px;">Configure Category</h2>
+        <div style="width: 50px;"></div>
+      </div>
+
+      <div class="form-container-card">
+        <form id="page-category-form">
+          <input type="hidden" id="page-category-id">
+
+          <!-- Section 1: Basic Info -->
+          <div class="form-section">
+            <div class="form-section-title">1. Category Info</div>
+            <div class="grid-2">
+              <div class="form-row">
+                <label for="cat-name">Category Name</label>
+                <input type="text" id="cat-name" class="form-input" placeholder="e.g. Monitor, Tablet" required>
+              </div>
+              <div class="form-row">
+                <label for="cat-prefix">Tag Prefix (2-4 letters)</label>
+                <input type="text" id="cat-prefix" class="form-input" placeholder="e.g. MON" maxlength="5" style="text-transform: uppercase;" required>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Custom Fields Builder -->
+          <div class="form-section" style="margin-top: 10px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 6px;">
+              <span class="form-section-title" style="border: none; padding: 0;">2. Custom Field Schema</span>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="addFieldConfigRow()">+ Add Field</button>
+            </div>
+
+            <div id="fields-config-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+          </div>
+
+          <!-- Actions -->
+          <div class="form-actions-bar">
+            <button type="button" class="btn btn-ghost" onclick="showMainTab('categories')">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="save-cat-btn">Save Category</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Application Logic -->
+  <script>
+    const STORAGE_KEY = 'ga_apple_inventory_v3';
+
+    // Default seed dataset with handover history
+    const DEFAULT_DATA = {
+      categories: [
+        {
+          id: 'Laptop',
+          name: 'Laptop',
+          codePrefix: 'LAP',
+          fields: [
+            { key: 'brand', label: 'Brand & Model', type: 'text', required: true, placeholder: 'e.g. MacBook Pro 16, ThinkPad X1' },
+            { key: 'processor', label: 'Processor', type: 'text', required: true, placeholder: 'e.g. M3 Pro, Intel Core i7' },
+            { key: 'year', label: 'Year', type: 'number', required: false, placeholder: 'e.g. 2024' }
+          ]
+        },
+        {
+          id: 'Phone',
+          name: 'Phone',
+          codePrefix: 'PHN',
+          fields: [
+            { key: 'brand', label: 'Brand & Model', type: 'text', required: true, placeholder: 'e.g. iPhone 15 Pro, Galaxy S24' }
+          ]
+        },
+        {
+          id: 'General',
+          name: 'General',
+          codePrefix: 'GEN',
+          fields: [
+            { key: 'item', label: 'Item Name', type: 'text', required: true, placeholder: 'e.g. Projector, Office Chair' },
+            { key: 'brand', label: 'Brand', type: 'text', required: false, placeholder: 'e.g. Epson, Herman Miller' },
+            { key: 'type', label: 'Type', type: 'text', required: false, placeholder: 'e.g. PowerLite Laser, Aeron' }
+          ]
+        },
+        {
+          id: 'Provider',
+          name: 'Provider',
+          codePrefix: 'PRV',
+          fields: [
+            { key: 'providerName', label: 'Provider Name', type: 'text', required: true, placeholder: 'e.g. Telkomsel, Astragraphia' }
+          ]
+        }
+      ],
+      users: [
+        { id: 'usr-1', userName: 'Bambang Sudirman', jobTitle: 'GA Lead', department: 'Operations' },
+        { id: 'usr-2', userName: 'Siti Rahmawati', jobTitle: 'Procurement Specialist', department: 'Finance' },
+        { id: 'usr-3', userName: 'Dewi Lestari', jobTitle: 'Software Engineer', department: 'Technology' }
+      ],
+      items: [
+        {
+          id: 'item-1',
+          assetTag: 'LAP-001',
+          category: 'Laptop',
+          assignedUserId: 'usr-3',
+          status: 'In Use',
+          location: 'Floor 4',
+          notes: 'Space Gray, 32GB RAM.',
+          details: { brand: 'MacBook Pro 16', processor: 'Apple M3 Pro', year: '2024' },
+          history: [
+            { date: '2026-09-18', from: 'Siti Rahmawati', to: 'Dewi Lestari', notes: 'Reassigned for engineering sprint work' },
+            { date: '2026-08-10', from: 'Storage / Pool', to: 'Siti Rahmawati', notes: 'Initial setup and software installation' }
+          ]
+        },
+        {
+          id: 'item-2',
+          assetTag: 'LAP-002',
+          category: 'Laptop',
+          assignedUserId: 'usr-1',
+          status: 'In Use',
+          location: 'GA Office',
+          notes: 'Standard office laptop.',
+          details: { brand: 'ThinkPad X1 Carbon', processor: 'Intel Core i7', year: '2023' },
+          history: [
+            { date: '2026-09-01', from: 'Storage / Pool', to: 'Bambang Sudirman', notes: 'Assigned for daily operations' }
+          ]
+        },
+        {
+          id: 'item-3',
+          assetTag: 'PHN-001',
+          category: 'Phone',
+          assignedUserId: 'usr-1',
+          status: 'In Use',
+          location: 'GA Office',
+          notes: 'Team hotline duty device.',
+          details: { brand: 'iPhone 15' },
+          history: [
+            { date: '2026-09-05', from: 'Storage / Pool', to: 'Bambang Sudirman', notes: 'Duty hotline device handover' }
+          ]
+        },
+        {
+          id: 'item-4',
+          assetTag: 'GEN-001',
+          category: 'General',
+          assignedUserId: null,
+          status: 'Available',
+          location: 'Meeting Room A',
+          notes: 'Ceiling mounted.',
+          details: { item: 'Laser Projector', brand: 'Epson', type: 'EB-L520U' },
+          history: []
+        },
+        {
+          id: 'item-5',
+          assetTag: 'PRV-001',
+          category: 'Provider',
+          assignedUserId: null,
+          status: 'Available',
+          location: 'Server Room',
+          notes: 'Main 1 Gbps internet leased line.',
+          details: { providerName: 'Telkomsel Enterprise' },
+          history: []
+        }
+      ]
+    };
+
+    // State
+    let activeTab = 'items';
+    let activePage = 'view-items';
+    let itemsViewMode = 'table';
+    let categories = [];
+    let users = [];
+    let items = [];
+
+    let currentCategoryFilter = 'ALL';
+    let currentSearchQuery = '';
+    let currentStatusFilter = 'ALL';
+    let currentPeopleFilter = 'ALL';
+
+    let editingItemId = null;
+    let viewingItemId = null;
+    let editingPersonId = null;
+    let editingCategoryId = null;
+
+    function init() {
+      loadData();
+      renderAll();
+      setupEvents();
+    }
+
+    function loadData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          categories = parsed.categories || DEFAULT_DATA.categories;
+          users = parsed.users || DEFAULT_DATA.users;
+          items = parsed.items || DEFAULT_DATA.items;
+        } catch (e) {
+          resetData();
+        }
+      } else {
+        resetData();
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ categories, users, items }));
+      updateCounts();
+    }
+
+    function resetData() {
+      categories = JSON.parse(JSON.stringify(DEFAULT_DATA.categories));
+      users = JSON.parse(JSON.stringify(DEFAULT_DATA.users));
+      items = JSON.parse(JSON.stringify(DEFAULT_DATA.items));
+      saveData();
+    }
+
+    function updateCounts() {
+      document.getElementById('count-items-pill').textContent = items.length;
+      document.getElementById('count-people-pill').textContent = users.length;
+      document.getElementById('count-categories-pill').textContent = categories.length;
+    }
+
+    function renderAll() {
+      updateCounts();
+      renderCategoryPills();
+      populateUserDropdowns();
+      if (activePage === 'view-items') renderItems();
+      if (activePage === 'view-people') renderPeople();
+      if (activePage === 'view-categories') renderCategories();
+    }
+
+    function showToast(msg) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast-pill';
+      toast.textContent = msg;
+      container.innerHTML = '';
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 2200);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    /* ==================== PAGE NAVIGATION ==================== */
+
+    function showPage(pageId) {
+      activePage = pageId;
+      document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+      const target = document.getElementById(pageId);
+      if (target) target.classList.add('active');
+
+      const tabsBar = document.getElementById('main-tabs-bar');
+      const topActionBtn = document.getElementById('top-action-btn');
+
+      if (pageId === 'view-items' || pageId === 'view-people' || pageId === 'view-categories') {
+        tabsBar.style.display = 'flex';
+        topActionBtn.style.display = 'inline-flex';
+      } else {
+        tabsBar.style.display = 'none';
+        topActionBtn.style.display = 'none';
+      }
+
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+
+    window.showMainTab = function(tabName) {
+      activeTab = tabName;
+      document.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
+
+      const topActionBtn = document.getElementById('top-action-btn');
+
+      if (tabName === 'items') {
+        document.getElementById('tab-items-btn').classList.add('active');
+        topActionBtn.textContent = '+ Add Item';
+        topActionBtn.onclick = openNewItemPage;
+        showPage('view-items');
+        renderItems();
+      } else if (tabName === 'people') {
+        document.getElementById('tab-people-btn').classList.add('active');
+        topActionBtn.textContent = '+ Add Person';
+        topActionBtn.onclick = openNewPersonPage;
+        showPage('view-people');
+        renderPeople();
+      } else if (tabName === 'categories') {
+        document.getElementById('tab-categories-btn').classList.add('active');
+        topActionBtn.textContent = '+ Add Category';
+        topActionBtn.onclick = openNewCategoryPage;
+        showPage('view-categories');
+        renderCategories();
+      }
+    };
+
+    window.toggleItemsView = function() {
+      itemsViewMode = itemsViewMode === 'table' ? 'cards' : 'table';
+      document.getElementById('view-mode-label').textContent = itemsViewMode === 'table' ? 'Cards' : 'Table';
+      renderItems();
+    };
+
+    /* ==================== ITEMS LIST & FILTER ==================== */
+
+    function renderCategoryPills() {
+      const container = document.getElementById('category-pills-container');
+      let html = `
+        <div class="cat-pill ${currentCategoryFilter === 'ALL' ? 'active' : ''}" onclick="setCategoryFilter('ALL')">
+          <span>All Items</span>
+          <span class="pill-number">${items.length}</span>
+        </div>
+      `;
+
+      categories.forEach(cat => {
+        const count = items.filter(i => i.category === cat.id).length;
+        const active = currentCategoryFilter === cat.id ? 'active' : '';
+        html += `
+          <div class="cat-pill ${active}" onclick="setCategoryFilter('${cat.id}')">
+            <span>${escapeHtml(cat.name)}</span>
+            <span class="pill-number">${count}</span>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    window.setCategoryFilter = function(catId) {
+      currentCategoryFilter = catId;
+      renderCategoryPills();
+      renderItems();
+    };
+
+    function getFilteredItems() {
+      return items.filter(item => {
+        if (currentCategoryFilter !== 'ALL' && item.category !== currentCategoryFilter) return false;
+        if (currentStatusFilter !== 'ALL' && item.status !== currentStatusFilter) return false;
+        if (currentPeopleFilter === 'ASSIGNED' && !item.assignedUserId) return false;
+        if (currentPeopleFilter === 'UNASSIGNED' && item.assignedUserId) return false;
+
+        if (currentSearchQuery.trim()) {
+          const q = currentSearchQuery.toLowerCase();
+          const user = users.find(u => u.id === item.assignedUserId);
+          const userName = user ? user.userName.toLowerCase() : '';
+          const detailsStr = Object.values(item.details || {}).join(' ').toLowerCase();
+
+          const matches = item.assetTag.toLowerCase().includes(q) ||
+            item.category.toLowerCase().includes(q) ||
+            (item.location && item.location.toLowerCase().includes(q)) ||
+            (item.notes && item.notes.toLowerCase().includes(q)) ||
+            userName.includes(q) ||
+            detailsStr.includes(q);
+
+          if (!matches) return false;
+        }
+        return true;
+      });
+    }
+
+    function renderItems() {
+      const list = getFilteredItems();
+      const tableView = document.getElementById('items-table-view');
+      const cardsView = document.getElementById('items-cards-view');
+      const emptyState = document.getElementById('items-empty-state');
+      const tbody = document.getElementById('items-table-body');
+
+      if (itemsViewMode === 'table') {
+        tableView.style.display = 'block';
+        cardsView.style.display = 'none';
+
+        if (list.length === 0) {
+          tbody.innerHTML = '';
+          emptyState.style.display = 'block';
+          return;
+        }
+        emptyState.style.display = 'none';
+
+        let html = '';
+        list.forEach(item => {
+          const user = users.find(u => u.id === item.assignedUserId);
+          const userCell = user ? `
+            <div class="user-pill" onclick="viewPersonDetail('${user.id}')" title="View profile">
+              <span class="user-avatar">${escapeHtml(user.userName.charAt(0))}</span>
+              <span>${escapeHtml(user.userName)}</span>
+            </div>
+          ` : `<span style="color: var(--text-tertiary);">—</span>`;
+
+          html += `
+            <tr>
+              <td><span class="tag-code">${escapeHtml(item.assetTag)}</span></td>
+              <td style="font-weight: 500;">${escapeHtml(item.category)}</td>
+              <td>${renderCleanDetailsSummary(item)}</td>
+              <td>${userCell}</td>
+              <td><span class="status-pill ${getStatusClass(item.status)}">${escapeHtml(item.status)}</span></td>
+              <td style="color: var(--text-secondary);">${escapeHtml(item.location || '—')}</td>
+              <td>
+                <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                  <button class="btn btn-ghost btn-sm" onclick="viewItemDetail('${item.id}')">View</button>
+                  <button class="btn btn-ghost btn-sm" onclick="openEditItemPage('${item.id}')">Edit</button>
+                  <button class="btn btn-ghost btn-sm" style="color: var(--red);" onclick="deleteItem('${item.id}')">Delete</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        });
+        tbody.innerHTML = html;
+      } else {
+        tableView.style.display = 'none';
+        cardsView.style.display = 'grid';
+
+        if (list.length === 0) {
+          cardsView.innerHTML = `
+            <div class="content-card empty-box" style="grid-column: 1 / -1;">
+              <h4>No items found</h4>
+              <p>Try searching for something else or add a new item.</p>
+            </div>
+          `;
+          return;
+        }
+
+        let html = '';
+        list.forEach(item => {
+          const user = users.find(u => u.id === item.assignedUserId);
+          html += `
+            <div class="item-card">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <span class="tag-code">${escapeHtml(item.assetTag)}</span>
+                  <span class="status-pill ${getStatusClass(item.status)}">${escapeHtml(item.status)}</span>
+                </div>
+                <div style="font-size: 15px; font-weight: 600; margin-bottom: 4px;">${escapeHtml(getItemTitle(item))}</div>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">${escapeHtml(item.category)}</div>
+
+                <div class="card-meta-list">
+                  ${renderCardFieldRows(item)}
+                  <div class="card-meta-row">
+                    <span class="meta-label">Assigned</span>
+                    <span class="meta-val">${user ? escapeHtml(user.userName) : 'Unassigned'}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 10px;">
+                <span style="font-size: 11px; color: var(--text-tertiary);">${escapeHtml(item.location || 'No location')}</span>
+                <div style="display: flex; gap: 4px;">
+                  <button class="btn btn-ghost btn-sm" onclick="viewItemDetail('${item.id}')">View</button>
+                  <button class="btn btn-ghost btn-sm" onclick="openEditItemPage('${item.id}')">Edit</button>
+                  <button class="btn btn-ghost btn-sm" style="color: var(--red);" onclick="deleteItem('${item.id}')">Delete</button>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        cardsView.innerHTML = html;
+      }
+    }
+
+    function renderCleanDetailsSummary(item) {
+      const details = item.details || {};
+      const cat = categories.find(c => c.id === item.category);
+      if (!cat || !cat.fields || cat.fields.length === 0) {
+        return Object.values(details).join(' • ') || '—';
+      }
+
+      const primaryField = cat.fields[0];
+      const primaryVal = details[primaryField.key] || item.assetTag;
+      const rest = cat.fields.slice(1).map(f => details[f.key]).filter(Boolean);
+
+      return `
+        <div>
+          <strong>${escapeHtml(primaryVal)}</strong>
+          ${rest.length > 0 ? `<div style="font-size: 12px; color: var(--text-secondary);">${escapeHtml(rest.join(' • '))}</div>` : ''}
+        </div>
+      `;
+    }
+
+    function renderCardFieldRows(item) {
+      const details = item.details || {};
+      const cat = categories.find(c => c.id === item.category);
+      const fields = cat ? cat.fields : [];
+      let rows = '';
+
+      fields.forEach(f => {
+        if (details[f.key]) {
+          rows += `
+            <div class="card-meta-row">
+              <span class="meta-label">${escapeHtml(f.label)}</span>
+              <span class="meta-val">${escapeHtml(details[f.key])}</span>
+            </div>
+          `;
+        }
+      });
+      return rows;
+    }
+
+    function getItemTitle(item) {
+      const details = item.details || {};
+      const cat = categories.find(c => c.id === item.category);
+      if (cat && cat.fields && cat.fields[0] && details[cat.fields[0].key]) {
+        return details[cat.fields[0].key];
+      }
+      return Object.values(details)[0] || item.assetTag;
+    }
+
+    function getStatusClass(status) {
+      if (status === 'In Use') return 'status-assigned';
+      if (status === 'Available') return 'status-available';
+      if (status === 'In Storage') return 'status-storage';
+      if (status === 'Repair') return 'status-repair';
+      return 'status-available';
+    }
+
+    /* ==================== PAGE: NEW / EDIT ITEM ==================== */
+
+    window.openNewItemPage = function() {
+      editingItemId = null;
+      document.getElementById('item-form-page-title').textContent = 'New Item';
+      document.getElementById('page-item-form').reset();
+      document.getElementById('page-item-id').value = '';
+
+      const defaultCat = (currentCategoryFilter !== 'ALL' && categories.some(c => c.id === currentCategoryFilter))
+        ? currentCategoryFilter
+        : (categories[0] ? categories[0].id : 'Laptop');
+
+      renderFormCategoryChips(defaultCat);
+      renderItemDynamicFormFields(defaultCat);
+      populateUserDropdowns();
+
+      // Auto-tag
+      const cat = categories.find(c => c.id === defaultCat);
+      const prefix = cat ? cat.codePrefix : 'ITM';
+      const count = items.filter(i => i.category === defaultCat).length + 1;
+      document.getElementById('item-tag').value = `${prefix}-${String(count).padStart(3, '0')}`;
+      document.getElementById('item-status').value = 'Available';
+
+      showPage('view-item-form');
+    };
+
+    window.openEditItemPage = function(id) {
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+
+      editingItemId = id;
+      document.getElementById('item-form-page-title').textContent = `Edit Item: ${item.assetTag}`;
+      document.getElementById('page-item-id').value = item.id;
+      document.getElementById('item-tag').value = item.assetTag;
+      document.getElementById('item-status').value = item.status;
+      document.getElementById('item-location').value = item.location || '';
+      document.getElementById('item-notes').value = item.notes || '';
+
+      populateUserDropdowns();
+      document.getElementById('item-assigned-user').value = item.assignedUserId || '';
+
+      renderFormCategoryChips(item.category);
+      renderItemDynamicFormFields(item.category, item.details);
+
+      showPage('view-item-form');
+    };
+
+    function renderFormCategoryChips(selectedCatId) {
+      const container = document.getElementById('form-category-chips');
+      let html = '';
+      categories.forEach(cat => {
+        const active = cat.id === selectedCatId ? 'active' : '';
+        html += `
+          <div class="form-cat-chip ${active}" onclick="selectFormCategory('${cat.id}')">
+            ${escapeHtml(cat.name)}
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    window.selectFormCategory = function(catId) {
+      renderFormCategoryChips(catId);
+      renderItemDynamicFormFields(catId);
+
+      if (!editingItemId) {
+        const cat = categories.find(c => c.id === catId);
+        const prefix = cat ? cat.codePrefix : 'ITM';
+        const count = items.filter(i => i.category === catId).length + 1;
+        document.getElementById('item-tag').value = `${prefix}-${String(count).padStart(3, '0')}`;
+      }
+    };
+
+    function renderItemDynamicFormFields(catId, values = {}) {
+      const container = document.getElementById('item-dynamic-fields');
+      const cat = categories.find(c => c.id === catId);
+      const title = document.getElementById('item-schema-section-title');
+
+      if (!cat) return;
+      title.textContent = `2. ${cat.name} Details`;
+
+      if (!cat.fields || cat.fields.length === 0) {
+        container.innerHTML = `<p style="font-size: 13px; color: var(--text-secondary);">No custom fields defined for this category.</p>`;
+        return;
+      }
+
+      let html = '';
+      cat.fields.forEach(field => {
+        const val = values[field.key] !== undefined ? values[field.key] : '';
+        const reqText = field.required ? '<span style="color: var(--red);">* Required</span>' : '<span style="color: var(--text-tertiary);">Optional</span>';
+        const reqAttr = field.required ? 'required' : '';
+
+        html += `
+          <div class="form-row">
+            <label for="field_${field.key}">
+              <span>${escapeHtml(field.label)}</span>
+              <span>${reqText}</span>
+            </label>
+        `;
+
+        if (field.type === 'number') {
+          html += `<input type="number" id="field_${field.key}" class="form-input" placeholder="${escapeHtml(field.placeholder || '')}" value="${escapeHtml(val)}" ${reqAttr}>`;
+        } else if (field.type === 'date') {
+          html += `<input type="date" id="field_${field.key}" class="form-input" value="${escapeHtml(val)}" ${reqAttr}>`;
+        } else if (field.type === 'select') {
+          const opts = (field.options || '').split(',').map(o => o.trim()).filter(Boolean);
+          html += `<select id="field_${field.key}" class="form-select" ${reqAttr}><option value="">Select an option</option>`;
+          opts.forEach(opt => {
+            const sel = String(val) === opt ? 'selected' : '';
+            html += `<option value="${escapeHtml(opt)}" ${sel}>${escapeHtml(opt)}</option>`;
+          });
+          html += `</select>`;
+        } else if (field.type === 'textarea') {
+          html += `<textarea id="field_${field.key}" class="form-textarea" placeholder="${escapeHtml(field.placeholder || '')}" ${reqAttr}>${escapeHtml(val)}</textarea>`;
+        } else {
+          html += `<input type="text" id="field_${field.key}" class="form-input" placeholder="${escapeHtml(field.placeholder || '')}" value="${escapeHtml(val)}" ${reqAttr}>`;
+        }
+
+        html += `</div>`;
+      });
+
+      container.innerHTML = html;
+    }
+
+    function handlePageItemFormSubmit(e) {
+      e.preventDefault();
+      const activeChip = document.querySelector('.form-cat-chip.active');
+      if (!activeChip) return;
+
+      const catName = activeChip.textContent.trim();
+      const cat = categories.find(c => c.name === catName) || categories[0];
+      const assetTag = document.getElementById('item-tag').value.trim();
+      let status = document.getElementById('item-status').value;
+      const assignedUserId = document.getElementById('item-assigned-user').value || null;
+      const location = document.getElementById('item-location').value.trim();
+      const notes = document.getElementById('item-notes').value.trim();
+
+      if (!assetTag) return;
+
+      if (assignedUserId && status === 'In Storage') {
+        status = 'In Use';
+      }
+
+      if (!editingItemId && items.some(i => i.assetTag.toLowerCase() === assetTag.toLowerCase())) {
+        alert('This tag is already used. Please choose a unique tag.');
+        return;
+      }
+
+      // Extract dynamic fields
+      const details = {};
+      for (const field of cat.fields || []) {
+        const input = document.getElementById(`field_${field.key}`);
+        if (input) {
+          const val = input.value.trim();
+          if (field.required && !val) {
+            alert(`Please fill in "${field.label}".`);
+            input.focus();
+            return;
+          }
+          details[field.key] = val;
+        }
+      }
+
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      if (editingItemId) {
+        const idx = items.findIndex(i => i.id === editingItemId);
+        if (idx !== -1) {
+          const prevItem = items[idx];
+          const history = prevItem.history || [];
+
+          // Detect Handover Change
+          if (prevItem.assignedUserId !== assignedUserId) {
+            const fromUser = users.find(u => u.id === prevItem.assignedUserId);
+            const toUser = users.find(u => u.id === assignedUserId);
+            const fromName = fromUser ? fromUser.userName : 'Storage / Pool';
+            const toName = toUser ? toUser.userName : 'Storage / Pool';
+
+            history.unshift({
+              date: todayStr,
+              from: fromName,
+              to: toName,
+              notes: 'Reassigned via edit'
+            });
+          }
+
+          items[idx] = { ...prevItem, category: cat.id, assetTag, status, assignedUserId, location, notes, details, history };
+          showToast(`Saved ${assetTag}`);
+        }
+      } else {
+        const toUser = users.find(u => u.id === assignedUserId);
+        const history = [];
+        if (toUser) {
+          history.push({
+            date: todayStr,
+            from: 'Storage / Pool',
+            to: toUser.userName,
+            notes: 'Initial assignment'
+          });
+        }
+
+        const newItem = {
+          id: 'itm-' + Date.now().toString(36),
+          category: cat.id,
+          assetTag,
+          status,
+          assignedUserId,
+          location,
+          notes,
+          details,
+          history
+        };
+        items.unshift(newItem);
+        showToast(`Added ${assetTag}`);
+      }
+
+      saveData();
+      showMainTab('items');
+    }
+
+    window.deleteItem = function(id) {
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+      if (confirm(`Delete ${item.assetTag}?`)) {
+        items = items.filter(i => i.id !== id);
+        saveData();
+        renderAll();
+        showToast('Item deleted');
+      }
+    };
+
+    /* ==================== PAGE: ITEM DETAIL VIEW & HANDOVER ==================== */
+
+    window.viewItemDetail = function(id) {
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+      viewingItemId = id;
+
+      const user = users.find(u => u.id === item.assignedUserId);
+      const cat = categories.find(c => c.id === item.category);
+      const fields = cat ? cat.fields : [];
+      const details = item.details || {};
+      const history = item.history || [];
+
+      let fieldRows = '';
+      fields.forEach(f => {
+        fieldRows += `
+          <div class="detail-item">
+            <span class="detail-label">${escapeHtml(f.label)}</span>
+            <span class="detail-value">${escapeHtml(details[f.key] || '—')}</span>
+          </div>
+        `;
+      });
+
+      let historyHtml = '';
+      if (history.length === 0) {
+        historyHtml = `<div style="font-size: 13px; color: var(--text-tertiary); padding: 12px; background: var(--surface-secondary); border-radius: var(--radius-sm);">No handover activity logged yet.</div>`;
+      } else {
+        historyHtml = '<div class="handover-timeline">';
+        history.forEach(log => {
+          historyHtml += `
+            <div class="handover-log-card">
+              <div>
+                <div class="handover-transfer-desc">
+                  <span style="font-weight: 600; color: var(--text-primary);">${escapeHtml(log.from)}</span>
+                  <span class="handover-arrow">→</span>
+                  <span style="font-weight: 600; color: var(--apple-blue);">${escapeHtml(log.to)}</span>
+                </div>
+                ${log.notes ? `<div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">${escapeHtml(log.notes)}</div>` : ''}
+              </div>
+              <div class="handover-date">${escapeHtml(log.date)}</div>
+            </div>
+          `;
+        });
+        historyHtml += '</div>';
+      }
+
+      const html = `
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <span class="tag-code" style="margin-bottom: 6px;">${escapeHtml(item.assetTag)}</span>
+            <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 2px;">${escapeHtml(getItemTitle(item))}</h2>
+            <div style="font-size: 13px; color: var(--text-secondary);">${escapeHtml(item.category)}</div>
+          </div>
+          <span class="status-pill ${getStatusClass(item.status)}">${escapeHtml(item.status)}</span>
+        </div>
+
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-label">Current Assignee</span>
+            <span class="detail-value">${user ? escapeHtml(user.userName) + ' (' + escapeHtml(user.jobTitle) + ')' : 'Unassigned'}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Location</span>
+            <span class="detail-value">${escapeHtml(item.location || '—')}</span>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Category Details</div>
+          <div class="detail-grid">${fieldRows || '<span style="color: var(--text-tertiary);">No fields</span>'}</div>
+        </div>
+
+        <div>
+          <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Handover History (${history.length})</div>
+          ${historyHtml}
+        </div>
+
+        <div>
+          <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">Notes</div>
+          <div style="background: var(--surface-secondary); padding: 12px 14px; border-radius: var(--radius-sm); font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+            ${escapeHtml(item.notes || 'No notes.')}
+          </div>
+        </div>
+      `;
+
+      document.getElementById('item-detail-content').innerHTML = html;
+      document.getElementById('edit-from-detail-btn').onclick = () => openEditItemPage(item.id);
+      document.getElementById('handover-from-detail-btn').onclick = () => openQuickHandoverPage(item.id);
+
+      showPage('view-item-detail');
+    };
+
+    window.openQuickHandoverPage = function(itemId) {
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+
+      document.getElementById('handover-item-id').value = item.id;
+      const currentHolder = users.find(u => u.id === item.assignedUserId);
+      document.getElementById('handover-item-summary').textContent = `${item.assetTag} • ${getItemTitle(item)} (Currently: ${currentHolder ? currentHolder.userName : 'Storage'})`;
+
+      const select = document.getElementById('handover-to-user');
+      select.innerHTML = '<option value="">— Return to Storage / Pool —</option>';
+      users.forEach(u => {
+        const isCurrent = u.id === item.assignedUserId;
+        select.innerHTML += `<option value="${u.id}" ${isCurrent ? 'disabled' : ''}>${escapeHtml(u.userName)} (${escapeHtml(u.jobTitle)}) ${isCurrent ? '— [Current]' : ''}</option>`;
+      });
+
+      document.getElementById('handover-notes').value = '';
+      showPage('view-item-handover');
+    };
+
+    window.backToItemDetail = function() {
+      if (viewingItemId) {
+        viewItemDetail(viewingItemId);
+      } else {
+        showMainTab('items');
+      }
+    };
+
+    function handleHandoverFormSubmit(e) {
+      e.preventDefault();
+      const itemId = document.getElementById('handover-item-id').value;
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+
+      const toUserId = document.getElementById('handover-to-user').value || null;
+      const notes = document.getElementById('handover-notes').value.trim();
+
+      const fromUser = users.find(u => u.id === item.assignedUserId);
+      const toUser = users.find(u => u.id === toUserId);
+
+      const fromName = fromUser ? fromUser.userName : 'Storage / Pool';
+      const toName = toUser ? toUser.userName : 'Storage / Pool';
+
+      item.assignedUserId = toUserId;
+      item.status = toUserId ? 'In Use' : 'In Storage';
+
+      item.history = item.history || [];
+      item.history.unshift({
+        date: new Date().toISOString().split('T')[0],
+        from: fromName,
+        to: toName,
+        notes: notes || 'Equipment Handover'
+      });
+
+      saveData();
+      showToast(`Handed over to ${toName}`);
+      viewItemDetail(item.id);
+    }
+
+    /* ==================== PAGE: PEOPLE ==================== */
+
+    function renderPeople() {
+      const tbody = document.getElementById('people-table-body');
+      const emptyState = document.getElementById('people-empty-state');
+      const q = (document.getElementById('people-search').value || '').toLowerCase();
+
+      let list = users;
+      if (q.trim()) {
+        list = users.filter(u => u.userName.toLowerCase().includes(q) || u.jobTitle.toLowerCase().includes(q) || (u.department && u.department.toLowerCase().includes(q)));
+      }
+
+      if (list.length === 0) {
+        tbody.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+      }
+      emptyState.style.display = 'none';
+
+      let html = '';
+      list.forEach(u => {
+        const assigned = items.filter(i => i.assignedUserId === u.id);
+        const badges = assigned.map(item => `
+          <span class="tag-code" style="cursor: pointer;" onclick="viewItemDetail('${item.id}')">${escapeHtml(item.assetTag)}</span>
+        `).join(' ');
+
+        html += `
+          <tr>
+            <td>
+              <div class="user-pill" onclick="viewPersonDetail('${u.id}')">
+                <span class="user-avatar">${escapeHtml(u.userName.charAt(0))}</span>
+                <span style="font-weight: 600;">${escapeHtml(u.userName)}</span>
+              </div>
+            </td>
+            <td>${escapeHtml(u.jobTitle)}</td>
+            <td style="color: var(--text-secondary);">${escapeHtml(u.department || 'General')}</td>
+            <td>
+              <div style="display: flex; gap: 4px; align-items: center; flex-wrap: wrap;">
+                ${badges || '<span style="color: var(--text-tertiary); font-size: 12px;">No items</span>'}
+              </div>
+            </td>
+            <td>
+              <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                <button class="btn btn-ghost btn-sm" onclick="viewPersonDetail('${u.id}')">View</button>
+                <button class="btn btn-ghost btn-sm" onclick="openEditPersonPage('${u.id}')">Edit</button>
+                <button class="btn btn-ghost btn-sm" style="color: var(--red);" onclick="deletePerson('${u.id}')">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    }
+
+    window.openNewPersonPage = function() {
+      editingPersonId = null;
+      document.getElementById('person-form-page-title').textContent = 'New Person';
+      document.getElementById('page-person-form').reset();
+      document.getElementById('page-person-id').value = '';
+      showPage('view-person-form');
+    };
+
+    window.openEditPersonPage = function(id) {
+      const u = users.find(x => x.id === id);
+      if (!u) return;
+
+      editingPersonId = id;
+      document.getElementById('person-form-page-title').textContent = `Edit Person: ${u.userName}`;
+      document.getElementById('page-person-id').value = u.id;
+      document.getElementById('person-name').value = u.userName;
+      document.getElementById('person-title').value = u.jobTitle;
+      document.getElementById('person-dept').value = u.department || '';
+
+      showPage('view-person-form');
+    };
+
+    function handlePagePersonFormSubmit(e) {
+      e.preventDefault();
+      const userName = document.getElementById('person-name').value.trim();
+      const jobTitle = document.getElementById('person-title').value.trim();
+      const department = document.getElementById('person-dept').value.trim();
+
+      if (!userName || !jobTitle) return;
+
+      if (editingPersonId) {
+        const idx = users.findIndex(u => u.id === editingPersonId);
+        if (idx !== -1) {
+          users[idx] = { ...users[idx], userName, jobTitle, department };
+          showToast(`Saved ${userName}`);
+        }
+      } else {
+        const newU = {
+          id: 'usr-' + Date.now().toString(36),
+          userName,
+          jobTitle,
+          department: department || 'General'
+        };
+        users.push(newU);
+        showToast(`Added ${userName}`);
+      }
+
+      saveData();
+      showMainTab('people');
+    }
+
+    window.deletePerson = function(id) {
+      const u = users.find(x => x.id === id);
+      if (!u) return;
+      if (confirm(`Delete ${u.userName}? Any assigned items will be marked unassigned.`)) {
+        items.forEach(i => {
+          if (i.assignedUserId === id) {
+            i.assignedUserId = null;
+            i.status = 'In Storage';
+          }
+        });
+        users = users.filter(x => x.id !== id);
+        saveData();
+        renderAll();
+        showToast('Person removed');
+      }
+    };
+
+    window.viewPersonDetail = function(id) {
+      const u = users.find(x => x.id === id);
+      if (!u) return;
+
+      const assigned = items.filter(i => i.assignedUserId === u.id);
+      let itemsList = '';
+      if (assigned.length === 0) {
+        itemsList = `<div style="color: var(--text-secondary); font-size: 13px; padding: 12px; background: var(--surface-secondary); border-radius: var(--radius-sm);">No items currently assigned.</div>`;
+      } else {
+        assigned.forEach(i => {
+          itemsList += `
+            <div style="background: var(--surface-secondary); padding: 10px 14px; border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <div>
+                <span class="tag-code">${escapeHtml(i.assetTag)}</span>
+                <span style="font-weight: 500; font-size: 13px; margin-left: 8px;">${escapeHtml(getItemTitle(i))}</span>
+                <span style="font-size: 12px; color: var(--text-secondary); margin-left: 4px;">(${escapeHtml(i.category)})</span>
+              </div>
+              <button class="btn btn-ghost btn-sm" style="color: var(--red);" onclick="unassignItem('${i.id}')">Unassign</button>
+            </div>
+          `;
+        });
+      }
+
+      const html = `
+        <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+          <span class="user-avatar" style="width: 48px; height: 48px; font-size: 20px;">${escapeHtml(u.userName.charAt(0))}</span>
+          <div>
+            <h2 style="font-size: 20px; font-weight: 700;">${escapeHtml(u.userName)}</h2>
+            <div style="font-size: 13px; color: var(--text-secondary);">${escapeHtml(u.jobTitle)} • ${escapeHtml(u.department || 'General')}</div>
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px;">Assigned Items (${assigned.length})</div>
+          ${itemsList}
+        </div>
+      `;
+
+      document.getElementById('person-detail-content').innerHTML = html;
+      document.getElementById('edit-from-person-detail-btn').onclick = () => openEditPersonPage(u.id);
+      showPage('view-person-detail');
+    };
+
+    window.unassignItem = function(itemId) {
+      const item = items.find(i => i.id === itemId);
+      if (!item) return;
+      const prevUser = users.find(u => u.id === item.assignedUserId);
+      const prevUserId = item.assignedUserId;
+
+      item.assignedUserId = null;
+      item.status = 'In Storage';
+
+      item.history = item.history || [];
+      item.history.unshift({
+        date: new Date().toISOString().split('T')[0],
+        from: prevUser ? prevUser.userName : 'User',
+        to: 'Storage / Pool',
+        notes: 'Unassigned & returned'
+      });
+
+      saveData();
+      renderAll();
+      showToast('Item unassigned');
+      if (activePage === 'view-person-detail' && prevUserId) {
+        viewPersonDetail(prevUserId);
+      }
+    };
+
+    function populateUserDropdowns() {
+      const select = document.getElementById('item-assigned-user');
+      const val = select.value;
+      select.innerHTML = '<option value="">— Unassigned (In Storage) —</option>';
+      users.forEach(u => {
+        select.innerHTML += `<option value="${u.id}">${escapeHtml(u.userName)} (${escapeHtml(u.jobTitle)})</option>`;
+      });
+      select.value = val;
+    }
+
+    /* ==================== PAGE: CATEGORIES & SCHEMAS ==================== */
+
+    function renderCategories() {
+      const container = document.getElementById('categories-grid');
+      let html = '';
+
+      categories.forEach(cat => {
+        const count = items.filter(i => i.category === cat.id).length;
+        const fields = cat.fields || [];
+
+        let fieldsPills = fields.map(f => `
+          <div style="display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--border);">
+            <span>${escapeHtml(f.label)}</span>
+            <span style="color: var(--text-secondary);">${f.type} • ${f.required ? 'Required' : 'Optional'}</span>
+          </div>
+        `).join('');
+
+        html += `
+          <div class="item-card">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span class="tag-code">${escapeHtml(cat.codePrefix)}</span>
+                <span style="font-size: 12px; color: var(--text-secondary);">${count} items</span>
+              </div>
+              <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">${escapeHtml(cat.name)}</h3>
+
+              <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;">FIELDS (${fields.length})</div>
+              <div>${fieldsPills || '<span style="color: var(--text-tertiary); font-size: 12px;">No fields</span>'}</div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 6px; border-top: 1px solid var(--border); padding-top: 10px;">
+              <button class="btn btn-secondary btn-sm" onclick="openEditCategoryPage('${cat.id}')">Edit Fields</button>
+              <button class="btn btn-ghost btn-sm" style="color: var(--red);" onclick="deleteCategory('${cat.id}')">Delete</button>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    window.openNewCategoryPage = function() {
+      editingCategoryId = null;
+      document.getElementById('category-form-page-title').textContent = 'New Category';
+      document.getElementById('page-category-form').reset();
+      document.getElementById('page-category-id').value = '';
+      document.getElementById('fields-config-list').innerHTML = '';
+
+      addFieldConfigRow({ label: 'Model Name', key: 'model_name', type: 'text', required: true });
+      showPage('view-category-form');
+    };
+
+    window.openEditCategoryPage = function(catId) {
+      const cat = categories.find(c => c.id === catId);
+      if (!cat) return;
+
+      editingCategoryId = cat.id;
+      document.getElementById('category-form-page-title').textContent = `Configure: ${cat.name}`;
+      document.getElementById('page-category-id').value = cat.id;
+      document.getElementById('cat-name').value = cat.name;
+      document.getElementById('cat-prefix').value = cat.codePrefix;
+
+      const list = document.getElementById('fields-config-list');
+      list.innerHTML = '';
+      (cat.fields || []).forEach(f => addFieldConfigRow(f));
+
+      showPage('view-category-form');
+    };
+
+    window.addFieldConfigRow = function(data = {}) {
+      const list = document.getElementById('fields-config-list');
+      const row = document.createElement('div');
+      row.style.cssText = 'background: var(--surface-secondary); padding: 10px 12px; border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--border);';
+
+      const label = data.label || '';
+      const type = data.type || 'text';
+      const required = data.required !== undefined ? data.required : true;
+      const options = data.options || '';
+
+      row.innerHTML = `
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <input type="text" class="form-input field-label-in" placeholder="Field Label (e.g. Screen Size)" value="${escapeHtml(label)}" required style="flex: 2;">
+          <select class="form-select field-type-in" style="flex: 1.2;">
+            <option value="text" ${type === 'text' ? 'selected' : ''}>Text</option>
+            <option value="number" ${type === 'number' ? 'selected' : ''}>Number</option>
+            <option value="date" ${type === 'date' ? 'selected' : ''}>Date</option>
+            <option value="select" ${type === 'select' ? 'selected' : ''}>Dropdown</option>
+            <option value="textarea" ${type === 'textarea' ? 'selected' : ''}>Notes</option>
+          </select>
+          <select class="form-select field-req-in" style="flex: 1;">
+            <option value="true" ${required === true ? 'selected' : ''}>Required</option>
+            <option value="false" ${required === false ? 'selected' : ''}>Optional</option>
+          </select>
+          <button type="button" class="btn btn-ghost btn-sm" style="color: var(--red); font-size: 16px;" onclick="this.closest('div').parentElement.remove()">&times;</button>
+        </div>
+        <div class="options-wrapper" style="display: ${type === 'select' ? 'block' : 'none'};">
+          <input type="text" class="form-input field-opts-in" placeholder="Comma-separated options (e.g. IPS, OLED, VA)" value="${escapeHtml(options)}" style="font-size: 12px; padding: 6px 10px;">
+        </div>
+      `;
+
+      row.querySelector('.field-type-in').addEventListener('change', (e) => {
+        row.querySelector('.options-wrapper').style.display = e.target.value === 'select' ? 'block' : 'none';
+      });
+
+      list.appendChild(row);
+    };
+
+    function handlePageCategoryFormSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('cat-name').value.trim();
+      const codePrefix = document.getElementById('cat-prefix').value.trim().toUpperCase();
+
+      if (!name || !codePrefix) return;
+
+      const rows = document.querySelectorAll('#fields-config-list > div');
+      const fields = [];
+
+      for (const r of rows) {
+        const label = r.querySelector('.field-label-in').value.trim();
+        const type = r.querySelector('.field-type-in').value;
+        const required = r.querySelector('.field-req-in').value === 'true';
+        const options = r.querySelector('.field-opts-in').value.trim();
+
+        if (label) {
+          const key = label.toLowerCase().replace(/[^a-z0-9]/g, '_');
+          fields.push({ key, label, type, required, options });
+        }
+      }
+
+      if (editingCategoryId) {
+        const idx = categories.findIndex(c => c.id === editingCategoryId);
+        if (idx !== -1) {
+          categories[idx] = { ...categories[idx], name, codePrefix, fields };
+          showToast(`Saved category ${name}`);
+        }
+      } else {
+        if (categories.some(c => c.id.toLowerCase() === name.toLowerCase())) {
+          alert('Category name already exists.');
+          return;
+        }
+        categories.push({ id: name, name, codePrefix, fields });
+        showToast(`Added category ${name}`);
+      }
+
+      saveData();
+      showMainTab('categories');
+    }
+
+    window.deleteCategory = function(id) {
+      const cat = categories.find(c => c.id === id);
+      if (!cat) return;
+      if (confirm(`Delete category "${cat.name}"? Any items in this category will also be deleted.`)) {
+        items = items.filter(i => i.category !== id);
+        categories = categories.filter(c => c.id !== id);
+        saveData();
+        renderAll();
+        showToast('Category deleted');
+      }
+    };
+
+    /* ==================== EXCEL / CSV EXPORT ==================== */
+
+    function exportToExcelCSV() {
+      if (items.length === 0) {
+        alert('No items to export.');
+        return;
+      }
+
+      // Collect all possible headers across categories
+      const standardHeaders = ['Asset Tag', 'Category', 'Item Name / Model', 'Status', 'Assigned To', 'Job Title', 'Department', 'Location', 'Notes', 'Handover History'];
+      
+      const rows = [standardHeaders];
+
+      items.forEach(item => {
+        const user = users.find(u => u.id === item.assignedUserId);
+        const cat = categories.find(c => c.id === item.category);
+        const details = item.details || {};
+        
+        let detailsText = '';
+        if (cat && cat.fields) {
+          detailsText = cat.fields.map(f => `${f.label}: ${details[f.key] || '—'}`).join(' | ');
+        } else {
+          detailsText = Object.entries(details).map(([k, v]) => `${k}: ${v}`).join(' | ');
+        }
+
+        const historySummary = (item.history || [])
+          .map(h => `[${h.date}] ${h.from} -> ${h.to} (${h.notes || 'Handover'})`)
+          .join('; ');
+
+        rows.push([
+          item.assetTag,
+          item.category,
+          getItemTitle(item),
+          item.status,
+          user ? user.userName : 'Unassigned',
+          user ? user.jobTitle : '—',
+          user ? (user.department || 'General') : '—',
+          item.location || '—',
+          item.notes || '—',
+          historySummary || 'No transfers'
+        ]);
+      });
+
+      // Format as CSV with UTF-8 BOM so Excel opens it with proper encoding
+      const csvContent = '\uFEFF' + rows.map(e => e.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', url);
+      downloadAnchor.setAttribute('download', `ga_inventory_report_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      URL.revokeObjectURL(url);
+
+      showToast('Exported to Excel CSV');
+    }
+
+    /* ==================== EVENTS ==================== */
+
+    function setupEvents() {
+      // Forms
+      document.getElementById('page-item-form').addEventListener('submit', handlePageItemFormSubmit);
+      document.getElementById('handover-form').addEventListener('submit', handleHandoverFormSubmit);
+      document.getElementById('page-person-form').addEventListener('submit', handlePagePersonFormSubmit);
+      document.getElementById('page-category-form').addEventListener('submit', handlePageCategoryFormSubmit);
+
+      // Filters
+      document.getElementById('items-search').addEventListener('input', (e) => {
+        currentSearchQuery = e.target.value;
+        renderItems();
+      });
+      document.getElementById('items-status-filter').addEventListener('change', (e) => {
+        currentStatusFilter = e.target.value;
+        renderItems();
+      });
+      document.getElementById('items-people-filter').addEventListener('change', (e) => {
+        currentPeopleFilter = e.target.value;
+        renderItems();
+      });
+      document.getElementById('people-search').addEventListener('input', renderPeople);
+
+      // Excel Export
+      document.getElementById('export-excel-btn').addEventListener('click', exportToExcelCSV);
+
+      // JSON Export / Import / Reset
+      document.getElementById('export-json-btn').addEventListener('click', () => {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ categories, users, items }, null, 2));
+        const a = document.createElement('a');
+        a.setAttribute("href", dataStr);
+        a.setAttribute("download", `inventory_backup_${new Date().toISOString().split('T')[0]}.json`);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        showToast('Exported JSON');
+      });
+
+
+      document.getElementById('reset-data-btn').addEventListener('click', () => {
+        if (confirm('Reset to sample data?')) {
+          resetData();
+          renderAll();
+          showToast('Reset complete');
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
