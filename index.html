@@ -167,6 +167,89 @@
       font-size: 12px;
     }
 
+    /* Apple-Style Dropdown Menu */
+    .apple-dropdown-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      width: 300px;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md), 0 12px 30px rgba(0, 0, 0, 0.08);
+      padding: 6px;
+      z-index: 100;
+      animation: menuFadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes menuFadeIn {
+      from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .dropdown-header-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      padding: 6px 10px 4px;
+      letter-spacing: 0.04em;
+    }
+
+    .dropdown-option {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      border: none;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: background 0.12s ease;
+      font-family: var(--font-system);
+    }
+
+    .dropdown-option:hover {
+      background: var(--apple-blue-subtle);
+    }
+
+    .dropdown-option:active {
+      transform: scale(0.99);
+    }
+
+    .dropdown-option-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dropdown-option-badge {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 1px 7px;
+      border-radius: var(--radius-full);
+      background: var(--surface-tertiary);
+      color: var(--text-secondary);
+    }
+
+    .dropdown-option-desc {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .dropdown-separator {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 6px;
+    }
+
     /* Back Link Button */
     .back-btn {
       display: inline-flex;
@@ -831,10 +914,38 @@
       </div>
 
       <div class="header-controls">
-        <button class="btn btn-secondary btn-sm" id="export-excel-btn" title="Download Excel spreadsheet (CSV)">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          Export Excel
-        </button>
+        <div class="export-dropdown-wrapper" style="position: relative;">
+          <button class="btn btn-secondary btn-sm" id="export-excel-btn" title="Export to Excel spreadsheet">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Export Excel
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left: 2px;"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="apple-dropdown-menu" id="export-dropdown-menu" style="display: none;">
+            <div class="dropdown-header-label">Export Spreadsheet (.csv)</div>
+            <button class="dropdown-option" id="export-current-btn" onclick="exportCurrentView()">
+              <div class="dropdown-option-title">
+                <span>Current View</span>
+                <span class="dropdown-option-badge" id="export-badge-current">0 items</span>
+              </div>
+              <div class="dropdown-option-desc">Export items matching active search & filters</div>
+            </button>
+            <button class="dropdown-option" id="export-master-btn" onclick="exportMasterInventory()">
+              <div class="dropdown-option-title">
+                <span>All Inventory (Master)</span>
+                <span class="dropdown-option-badge" id="export-badge-master">0 items</span>
+              </div>
+              <div class="dropdown-option-desc">All categories with dedicated attribute columns</div>
+            </button>
+            <div class="dropdown-separator"></div>
+            <button class="dropdown-option" id="export-ledger-btn" onclick="exportHandoverLedger()">
+              <div class="dropdown-option-title">
+                <span>Handover Transfer Log</span>
+                <span class="dropdown-option-badge" id="export-badge-ledger">0 logs</span>
+              </div>
+              <div class="dropdown-option-desc">Chronological history of all asset movements</div>
+            </button>
+          </div>
+        </div>
         <button class="btn btn-ghost btn-sm" id="export-json-btn">JSON</button>
         <button class="btn btn-ghost btn-sm" id="reset-data-btn">Reset</button>
         <button class="btn btn-primary" id="top-action-btn" onclick="openNewItemPage()">+ Add Item</button>
@@ -2418,34 +2529,212 @@
       }
     };
 
-    /* ==================== EXCEL / CSV EXPORT ==================== */
+    /* ==================== EXCEL / CSV EXPORT SUITE ==================== */
 
-    function exportToExcelCSV() {
-      if (items.length === 0) {
-        alert('No items to export.');
+    function getTodayString() {
+      return new Date().toISOString().split('T')[0];
+    }
+
+    function sanitizeCell(val) {
+      if (val === null || val === undefined) return '';
+      // Replace linebreaks with spaces so rows in CSV don't break in Excel
+      return String(val).replace(/\r?\n|\r/g, ' ').trim();
+    }
+
+    function downloadCSV(rows, filename, toastMsg) {
+      // Format as CSV with UTF-8 BOM so Excel opens with proper unicode/character encoding
+      const csvContent = '\uFEFF' + rows.map(r => r.map(c => `"${sanitizeCell(c).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.setAttribute('href', url);
+      a.setAttribute('download', filename);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      closeExportMenu();
+      showToast(toastMsg || 'Exported spreadsheet');
+    }
+
+    function toggleExportMenu(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('export-dropdown-menu');
+      if (!menu) return;
+      const isVisible = menu.style.display === 'block';
+      if (isVisible) {
+        menu.style.display = 'none';
+      } else {
+        // Update live counts
+        const filteredCount = getFilteredItems().length;
+        const masterCount = items.length;
+        let ledgerCount = 0;
+        items.forEach(i => { if (i.history) ledgerCount += i.history.length; });
+
+        document.getElementById('export-badge-current').textContent = `${filteredCount} items`;
+        document.getElementById('export-badge-master').textContent = `${masterCount} items`;
+        document.getElementById('export-badge-ledger').textContent = `${ledgerCount} logs`;
+
+        menu.style.display = 'block';
+      }
+    }
+
+    function closeExportMenu() {
+      const menu = document.getElementById('export-dropdown-menu');
+      if (menu) menu.style.display = 'none';
+    }
+
+    // 1. Export Current Filtered View (Tailored to active category or filtered set)
+    function exportCurrentView() {
+      const filtered = getFilteredItems();
+      if (filtered.length === 0) {
+        alert('No items currently match your filter to export.');
         return;
       }
 
-      // Collect all possible headers across categories
-      const standardHeaders = ['Asset Tag', 'Category', 'Item Name / Model', 'Status', 'Assigned To', 'Job Title', 'Department', 'Location', 'Notes', 'Handover History'];
-      
-      const rows = [standardHeaders];
+      const today = getTodayString();
+
+      // If a specific category is active (e.g. Laptop, Phone, etc.)
+      if (currentCategoryFilter !== 'ALL') {
+        const cat = categories.find(c => c.id === currentCategoryFilter);
+        const catFields = (cat && cat.fields) ? cat.fields : [];
+
+        const headers = [
+          'Asset Tag',
+          'Category',
+          ...catFields.map(f => f.label),
+          'Status',
+          'Assigned To',
+          'Job Title',
+          'Department',
+          'Location',
+          'Notes',
+          'Last Transfer Date',
+          'Last Transfer From',
+          'Latest Transfer Notes'
+        ];
+
+        const rows = [headers];
+
+        filtered.forEach(item => {
+          const user = users.find(u => u.id === item.assignedUserId);
+          const details = item.details || {};
+          const lastTransfer = (item.history && item.history.length > 0) ? item.history[0] : null;
+
+          rows.push([
+            item.assetTag,
+            item.category,
+            ...catFields.map(f => details[f.key] || ''),
+            item.status,
+            user ? user.userName : 'Unassigned',
+            user ? user.jobTitle : '',
+            user ? (user.department || 'General') : '',
+            item.location || '',
+            item.notes || '',
+            lastTransfer ? lastTransfer.date : '',
+            lastTransfer ? lastTransfer.from : '',
+            lastTransfer ? lastTransfer.notes : ''
+          ]);
+        });
+
+        const safeCat = currentCategoryFilter.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        downloadCSV(rows, `ga_inventory_${safeCat}_${today}.csv`, `Exported ${filtered.length} ${currentCategoryFilter} items`);
+      } else {
+        // All Categories in Current View: build dedicated columns for all category fields
+        const fieldMap = new Map();
+        categories.forEach(c => {
+          (c.fields || []).forEach(f => {
+            if (!fieldMap.has(f.key)) fieldMap.set(f.key, f.label);
+          });
+        });
+        const fieldKeys = Array.from(fieldMap.keys());
+        const fieldLabels = Array.from(fieldMap.values());
+
+        const headers = [
+          'Asset Tag',
+          'Category',
+          'Item Description',
+          ...fieldLabels,
+          'Status',
+          'Assigned To',
+          'Job Title',
+          'Department',
+          'Location',
+          'Notes',
+          'Last Transfer Date',
+          'Last Transfer From'
+        ];
+
+        const rows = [headers];
+
+        filtered.forEach(item => {
+          const user = users.find(u => u.id === item.assignedUserId);
+          const details = item.details || {};
+          const lastTransfer = (item.history && item.history.length > 0) ? item.history[0] : null;
+
+          rows.push([
+            item.assetTag,
+            item.category,
+            getItemTitle(item),
+            ...fieldKeys.map(k => details[k] || ''),
+            item.status,
+            user ? user.userName : 'Unassigned',
+            user ? user.jobTitle : '',
+            user ? (user.department || 'General') : '',
+            item.location || '',
+            item.notes || '',
+            lastTransfer ? lastTransfer.date : '',
+            lastTransfer ? lastTransfer.from : ''
+          ]);
+        });
+
+        downloadCSV(rows, `ga_inventory_view_${today}.csv`, `Exported Current View (${filtered.length} items)`);
+      }
+    }
+
+    // 2. Export Master Inventory (All Items with distinct attribute columns)
+    function exportMasterInventory() {
+      if (items.length === 0) {
+        alert('No items in database to export.');
+        return;
+      }
+
+      const today = getTodayString();
+
+      // Collect all dynamic fields across all categories
+      const fieldMap = new Map();
+      categories.forEach(c => {
+        (c.fields || []).forEach(f => {
+          if (!fieldMap.has(f.key)) fieldMap.set(f.key, f.label);
+        });
+      });
+      const fieldKeys = Array.from(fieldMap.keys());
+      const fieldLabels = Array.from(fieldMap.values());
+
+      const headers = [
+        'Asset Tag',
+        'Category',
+        'Item Description',
+        'Status',
+        'Assigned To',
+        'Job Title',
+        'Department',
+        ...fieldLabels,
+        'Location',
+        'Notes',
+        'Total Transfers',
+        'Last Transfer Date',
+        'Last Transfer From',
+        'Latest Transfer Notes'
+      ];
+
+      const rows = [headers];
 
       items.forEach(item => {
         const user = users.find(u => u.id === item.assignedUserId);
-        const cat = categories.find(c => c.id === item.category);
         const details = item.details || {};
-        
-        let detailsText = '';
-        if (cat && cat.fields) {
-          detailsText = cat.fields.map(f => `${f.label}: ${details[f.key] || '—'}`).join(' | ');
-        } else {
-          detailsText = Object.entries(details).map(([k, v]) => `${k}: ${v}`).join(' | ');
-        }
-
-        const historySummary = (item.history || [])
-          .map(h => `[${h.date}] ${h.from} -> ${h.to} (${h.notes || 'Handover'})`)
-          .join('; ');
+        const history = item.history || [];
+        const lastTransfer = history.length > 0 ? history[0] : null;
 
         rows.push([
           item.assetTag,
@@ -2453,29 +2742,83 @@
           getItemTitle(item),
           item.status,
           user ? user.userName : 'Unassigned',
-          user ? user.jobTitle : '—',
-          user ? (user.department || 'General') : '—',
-          item.location || '—',
-          item.notes || '—',
-          historySummary || 'No transfers'
+          user ? user.jobTitle : '',
+          user ? (user.department || 'General') : '',
+          ...fieldKeys.map(k => details[k] || ''),
+          item.location || '',
+          item.notes || '',
+          history.length,
+          lastTransfer ? lastTransfer.date : '',
+          lastTransfer ? lastTransfer.from : '',
+          lastTransfer ? lastTransfer.notes : ''
         ]);
       });
 
-      // Format as CSV with UTF-8 BOM so Excel opens it with proper encoding
-      const csvContent = '\uFEFF' + rows.map(e => e.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n');
-      
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute('href', url);
-      downloadAnchor.setAttribute('download', `ga_inventory_report_${new Date().toISOString().split('T')[0]}.csv`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-      URL.revokeObjectURL(url);
-
-      showToast('Exported to Excel CSV');
+      downloadCSV(rows, `ga_master_inventory_${today}.csv`, `Exported Master Inventory (${items.length} items)`);
     }
+
+    // 3. Export Dedicated Handover Audit Ledger
+    function exportHandoverLedger() {
+      const logs = [];
+
+      items.forEach(item => {
+        const history = item.history || [];
+        history.forEach(h => {
+          logs.push({
+            date: h.date,
+            assetTag: item.assetTag,
+            itemTitle: getItemTitle(item),
+            category: item.category,
+            from: h.from,
+            to: h.to,
+            status: item.status,
+            notes: h.notes || ''
+          });
+        });
+      });
+
+      if (logs.length === 0) {
+        alert('No handover transfer logs recorded yet.');
+        return;
+      }
+
+      // Sort newest first
+      logs.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+      const headers = [
+        'Transfer Date',
+        'Asset Tag',
+        'Item Description',
+        'Category',
+        'Transferred From',
+        'Transferred To',
+        'Current Item Status',
+        'Handover Notes'
+      ];
+
+      const rows = [headers];
+
+      logs.forEach(l => {
+        rows.push([
+          l.date,
+          l.assetTag,
+          l.itemTitle,
+          l.category,
+          l.from,
+          l.to,
+          l.status,
+          l.notes
+        ]);
+      });
+
+      downloadCSV(rows, `ga_handover_audit_ledger_${getTodayString()}.csv`, `Exported Handover Ledger (${logs.length} transfers)`);
+    }
+
+    window.exportCurrentView = exportCurrentView;
+    window.exportMasterInventory = exportMasterInventory;
+    window.exportHandoverLedger = exportHandoverLedger;
+    window.toggleExportMenu = toggleExportMenu;
+    window.closeExportMenu = closeExportMenu;
 
     /* ==================== EVENTS ==================== */
 
@@ -2501,8 +2844,14 @@
       });
       document.getElementById('people-search').addEventListener('input', renderPeople);
 
-      // Excel Export
-      document.getElementById('export-excel-btn').addEventListener('click', exportToExcelCSV);
+      // Excel Export Dropdown
+      document.getElementById('export-excel-btn').addEventListener('click', toggleExportMenu);
+      document.addEventListener('click', (e) => {
+        const wrapper = document.querySelector('.export-dropdown-wrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+          closeExportMenu();
+        }
+      });
 
       // JSON Export / Import / Reset
       document.getElementById('export-json-btn').addEventListener('click', () => {
