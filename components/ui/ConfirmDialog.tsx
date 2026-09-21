@@ -49,10 +49,14 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
     if (!open) return;
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onCancel();
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        onConfirm();
+      }
     }
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [open, onCancel]);
+  }, [open, onCancel, onConfirm]);
 
   if (!rendered) return null;
 
