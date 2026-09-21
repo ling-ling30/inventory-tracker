@@ -22,9 +22,6 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ backLabel, onBack, title
     <h2 className="page-title" style={{ fontSize: 18 }}>
       {title}
     </h2>
-    {/* Spacer or action buttons on the right */}
-    <div style={{ display: 'flex', gap: 8 }}>
-      {actions ?? <div style={{ width: 50 }} />}
-    </div>
+    <div style={{ display: 'flex', gap: 8 }}>{actions}</div>
   </div>
 );

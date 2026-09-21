@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 
 const FileIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -39,6 +39,21 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
   onClose,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
+  const [rendered, setRendered] = useState(isOpen);
+  const [closing, setClosing] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setRendered(true);
+      setClosing(false);
+      return;
+    }
+    if (rendered) {
+      setClosing(true);
+      const t = setTimeout(() => setRendered(false), 100);
+      return () => clearTimeout(t);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -46,8 +61,15 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
         onClose();
       }
     }
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose();
+    }
     document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
   }, [onClose]);
 
   return (
@@ -62,8 +84,8 @@ export const ExportDropdown: React.FC<ExportDropdownProps> = ({
         <ChevronIcon />
       </button>
 
-      {isOpen && (
-        <div className="apple-dropdown-menu" style={{ display: 'block' }}>
+      {rendered && (
+        <div className="apple-dropdown-menu" data-closing={closing}>
           <div className="dropdown-header-label">Export Spreadsheet (.csv)</div>
           {options.map((opt, i) => (
             <React.Fragment key={i}>

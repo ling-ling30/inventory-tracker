@@ -478,16 +478,6 @@ export default function InventoryApp() {
     } catch { alert('Failed to export handover log'); }
   }
 
-  async function handleResetData() {
-    if (!confirm('Reset inventory to sample data?')) return;
-    try {
-      await fetch('/api/reset', { method: 'POST' });
-      showToast('Database reset');
-      await loadData();
-      setActiveScreen('items');
-    } catch { alert('Reset failed'); }
-  }
-
   // ─── Render ───────────────────────────────────────────────────────────────
 
   if (loading) {
@@ -521,10 +511,6 @@ export default function InventoryApp() {
                 { label: 'Handover Transfer Log', badge: 'Ledger', description: 'Chronological history of all asset movements', onClick: exportHandoverLedger, separator: true },
               ]}
             />
-
-            <Button variant="ghost" size="sm" onClick={handleResetData}>
-              Reset
-            </Button>
 
             {mainTab === 'items' && (
               <Button variant="primary" onClick={handleOpenNewItem}>+ Add Item</Button>
