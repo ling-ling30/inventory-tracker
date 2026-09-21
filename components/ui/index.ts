@@ -6,6 +6,10 @@ export { StatusPill, TagCode, FieldBadge } from './Badge';
 export { Avatar, UserPill } from './Avatar';
 
 export { Toast } from './Toast';
+export type { ToastVariant } from './Toast';
+
+export { ConfirmDialog } from './ConfirmDialog';
+export type { ConfirmDialogProps } from './ConfirmDialog';
 
 export { EmptyState } from './EmptyState';
 

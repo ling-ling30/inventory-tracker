@@ -9,6 +9,7 @@ import {
   Avatar,
   UserPill,
   Toast,
+  ConfirmDialog,
   EmptyState,
   PageHeader,
   FormField,
@@ -75,7 +76,14 @@ export default function InventoryApp() {
   const [users, setUsers] = useState<User[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
-  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null);
+  const [confirmState, setConfirmState] = useState<{
+    title: string;
+    description?: string;
+    confirmLabel?: string;
+    danger?: boolean;
+    onConfirm: () => void;
+  } | null>(null);
 
   // Navigation
   const [activeScreen, setActiveScreen] = useState<string>('items');
@@ -135,7 +143,7 @@ export default function InventoryApp() {
       if (usersData.users) setUsers(usersData.users);
       if (itemsData.items) setItems(itemsData.items);
     } catch {
-      showToast('Error connecting to database');
+      showToast('Error connecting to database', 'error');
     } finally {
       setLoading(false);
     }
@@ -143,9 +151,13 @@ export default function InventoryApp() {
 
   useEffect(() => { loadData(); }, []);
 
-  function showToast(msg: string) {
-    setToastMsg(msg);
-    setTimeout(() => setToastMsg(null), 3000);
+  function showToast(message: string, variant: 'success' | 'error' = 'success') {
+    setToast({ message, variant });
+    setTimeout(() => setToast(null), 3000);
+  }
+
+  function confirmDialog(opts: { title: string; description?: string; confirmLabel?: string; danger?: boolean; onConfirm: () => void }) {
+    setConfirmState(opts);
   }
 
   // ─── Derived State ─────────────────────────────────────────────────────────
@@ -271,19 +283,27 @@ export default function InventoryApp() {
       await loadData();
       setActiveScreen('items');
     } catch (err: any) {
-      alert(err.message || 'Save error');
+      showToast(err.message || 'Save error', 'error');
     }
   }
 
-  async function handleDeleteItem(id: string, tag: string) {
-    if (!confirm(`Delete "${tag}"? This cannot be undone.`)) return;
-    try {
-      const res = await fetch(`/api/items/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete item');
-      showToast('Item deleted');
-      await loadData();
-      setActiveScreen('items');
-    } catch (err: any) { alert(err.message || 'Delete error'); }
+  function handleDeleteItem(id: string, tag: string) {
+    confirmDialog({
+      title: `Delete "${tag}"?`,
+      description: 'This cannot be undone.',
+      confirmLabel: 'Delete',
+      danger: true,
+      onConfirm: async () => {
+        setConfirmState(null);
+        try {
+          const res = await fetch(`/api/items/${id}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error('Failed to delete item');
+          showToast('Item deleted');
+          await loadData();
+          setActiveScreen('items');
+        } catch (err: any) { showToast(err.message || 'Delete error', 'error'); }
+      },
+    });
   }
 
   // ─── Handover ──────────────────────────────────────────────────────────────
@@ -309,7 +329,7 @@ export default function InventoryApp() {
       showToast(`Handed over to ${data.toName}`);
       await loadData();
       setActiveScreen('item-detail');
-    } catch (err: any) { alert(err.message || 'Handover error'); }
+    } catch (err: any) { showToast(err.message || 'Handover error', 'error'); }
   }
 
   async function handleQuickUnassign(itemId: string) {
@@ -322,7 +342,7 @@ export default function InventoryApp() {
       if (!res.ok) throw new Error('Failed to unassign');
       showToast('Item unassigned');
       await loadData();
-    } catch (err: any) { alert(err.message || 'Unassign error'); }
+    } catch (err: any) { showToast(err.message || 'Unassign error', 'error'); }
   }
 
   // ─── People CRUD ───────────────────────────────────────────────────────────
@@ -353,18 +373,26 @@ export default function InventoryApp() {
       }
       await loadData();
       setActiveScreen('people');
-    } catch (err: any) { alert(err.message || 'Save error'); }
+    } catch (err: any) { showToast(err.message || 'Save error', 'error'); }
   }
 
-  async function handleDeletePerson(id: string, name: string) {
-    if (!confirm(`Delete "${name}"? Their items will be unassigned.`)) return;
-    try {
-      const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete person');
-      showToast('Person removed');
-      await loadData();
-      setActiveScreen('people');
-    } catch (err: any) { alert(err.message || 'Delete error'); }
+  function handleDeletePerson(id: string, name: string) {
+    confirmDialog({
+      title: `Delete "${name}"?`,
+      description: 'Their items will be unassigned.',
+      confirmLabel: 'Delete',
+      danger: true,
+      onConfirm: async () => {
+        setConfirmState(null);
+        try {
+          const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error('Failed to delete person');
+          showToast('Person removed');
+          await loadData();
+          setActiveScreen('people');
+        } catch (err: any) { showToast(err.message || 'Delete error', 'error'); }
+      },
+    });
   }
 
   // ─── Category CRUD ─────────────────────────────────────────────────────────
@@ -391,18 +419,26 @@ export default function InventoryApp() {
       showToast(`Saved ${catName}`);
       await loadData();
       setActiveScreen('categories');
-    } catch (err: any) { alert(err.message || 'Category error'); }
+    } catch (err: any) { showToast(err.message || 'Category error', 'error'); }
   }
 
-  async function handleDeleteCategory(id: string, name: string) {
-    if (!confirm(`Delete category "${name}"? All items in this category will also be removed.`)) return;
-    try {
-      const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete category');
-      showToast('Category deleted');
-      await loadData();
-      setActiveScreen('categories');
-    } catch (err: any) { alert(err.message || 'Delete error'); }
+  function handleDeleteCategory(id: string, name: string) {
+    confirmDialog({
+      title: `Delete category "${name}"?`,
+      description: 'All items in this category will also be removed.',
+      confirmLabel: 'Delete',
+      danger: true,
+      onConfirm: async () => {
+        setConfirmState(null);
+        try {
+          const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' });
+          if (!res.ok) throw new Error('Failed to delete category');
+          showToast('Category deleted');
+          await loadData();
+          setActiveScreen('categories');
+        } catch (err: any) { showToast(err.message || 'Delete error', 'error'); }
+      },
+    });
   }
 
   // ─── Export ────────────────────────────────────────────────────────────────
@@ -424,7 +460,7 @@ export default function InventoryApp() {
   }
 
   function exportCurrentView() {
-    if (!filteredItems.length) { alert('No items to export.'); return; }
+    if (!filteredItems.length) { showToast('No items to export.', 'error'); return; }
     const today = getTodayString();
     if (currentCategoryFilter !== 'ALL') {
       const cat = categories.find((c) => c.id === currentCategoryFilter);
@@ -451,7 +487,7 @@ export default function InventoryApp() {
   }
 
   function exportMasterInventory() {
-    if (!items.length) { alert('No items to export.'); return; }
+    if (!items.length) { showToast('No items to export.', 'error'); return; }
     const today = getTodayString();
     const fieldMap = new Map<string, string>();
     categories.forEach((c) => (c.fields || []).forEach((f) => { if (!fieldMap.has(f.key)) fieldMap.set(f.key, f.label); }));
@@ -471,11 +507,11 @@ export default function InventoryApp() {
     try {
       const data = await fetch('/api/handover-logs').then((r) => r.json());
       const logs = data.logs || [];
-      if (!logs.length) { alert('No handover logs yet.'); return; }
+      if (!logs.length) { showToast('No handover logs yet.', 'error'); return; }
       const headers = ['Transfer Date', 'Asset Tag', 'Item Description', 'Category', 'Transferred From', 'Transferred To', 'Status', 'Notes'];
       const rows = [headers, ...logs.map((l: any) => [l.date, l.assetTag, l.itemTitle, l.category, l.from, l.to, l.status, l.notes])];
       downloadCSV(rows, `ga_handover_ledger_${getTodayString()}.csv`, `Exported ${logs.length} transfers`);
-    } catch { alert('Failed to export handover log'); }
+    } catch { showToast('Failed to export handover log', 'error'); }
   }
 
   // ─── Render ───────────────────────────────────────────────────────────────
@@ -490,7 +526,16 @@ export default function InventoryApp() {
 
   return (
     <>
-      <Toast message={toastMsg} />
+      <Toast toast={toast} />
+      <ConfirmDialog
+        open={!!confirmState}
+        title={confirmState?.title || ''}
+        description={confirmState?.description}
+        confirmLabel={confirmState?.confirmLabel}
+        danger={confirmState?.danger}
+        onConfirm={() => confirmState?.onConfirm()}
+        onCancel={() => setConfirmState(null)}
+      />
 
       {/* ── Top Header ── */}
       <header className="nav-header">
