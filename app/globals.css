@@ -411,7 +411,8 @@
     .form-section {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
     .form-section-title {
